@@ -43,6 +43,7 @@ def rotate_img(img, angle, edge):
     angle為逆時針旋轉角度
     edge為bool表示是否裁去黑邊
     '''
+    h ,w = img.shape[:2]
     angle %= 360
     #定義旋轉矩陣
     rot_matrix = cv2.getRotationMatrix2D((w/2, h/2), angle, 1)
@@ -73,4 +74,3 @@ def rotate_img(img, angle, edge):
         rot_img = crop_img(rot_img, x0, y0, w_crop, h_crop)
 
     return rot_img
-    
