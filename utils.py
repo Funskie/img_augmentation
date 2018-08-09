@@ -1,3 +1,6 @@
+"""
+some function to crop, rotate, change HSV from image.
+"""
 import numpy as np
 import cv2
 
@@ -129,4 +132,3 @@ def random_gamma_transform(img, gamma_rand):
     alpha = np.random.uniform(-log_gamma_rand, log_gamma_rand)
     gamma = np.exp(alpha)
     return gamma_transform(img, gamma)
-    
