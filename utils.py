@@ -4,13 +4,12 @@ some function to crop, rotate, change HSV from image.
 import numpy as np
 import cv2
 
-'''
-定義剪裁image的function
-x0 = img 左上角橫座標
-y0 = img 左上角縱座標
-wc = 剪裁寬度
-hc = 剪裁高度
-'''
+
+#定義剪裁image的function
+#x0 = img 左上角橫座標
+#y0 = img 左上角縱座標
+#wc = 剪裁寬度
+#hc = 剪裁高度
 crop_img = lambda img, x0, y0, wc, hc: img[x0:x0 + wc, y0:y0 + hc]
 
 def random_crop(img, a_ratio, hw_noise):
@@ -28,11 +27,11 @@ def random_crop(img, a_ratio, hw_noise):
     w_crop = int(round(w * np.sqrt(a_ratio * hw_mult)))
     if w_crop > w:
         w_crop = w #剪裁寬度不可超過原圖寬度
-    
+
     h_crop = int(round(h * np.sqrt(a_ratio / hw_mult)))
     if h_crop > h:
         h_crop = h#剪裁高度不可超過原圖高度
-    
+
     #於圖片左上角隨機生成剪裁座標
     x0 = np.random.randint(0, w - w_crop + 1)
     y0 = np.random.randint(0, h - h_crop + 1)
@@ -57,14 +56,14 @@ def rotate_img(img, angle, edge):
         angle_crop = angle % 180
         if angle_crop > 90:
             angle_crop = 180 - angle_crop
-                 
+
         theta_ = angle_crop * np.pi / 180
 
         hw_ratio = float(h) / float(w)
 
         tan_theta = np.tan(theta_)
         numerator = np.cos(theta_) + np.sin(theta_) * tan_theta
-        
+
         r = hw_ratio if h > w else 1 / hw_ratio
         denominator = r * tan_theta + 1
 

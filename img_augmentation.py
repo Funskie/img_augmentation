@@ -44,7 +44,7 @@ def parse_args():
 
 def generate_img_list(args):
     """
-    according number of processing and number of augmented image to 
+    according number of processing and number of augmented image to
     generate the list of created images per processing
     """
     filenames = os.listdir(args.input_dir)
@@ -60,7 +60,7 @@ def generate_img_list(args):
     random.shuffle(img_list)
     #計算每個process要處理的原照片張數與index
     lenght = float(num_imgs) / float(args.num_process)
-    indices = [int(round(i * lenght)) for i in (range(args.num_process + 1))]
+    indices = [int(round(i * lenght)) for i in range(args.num_process + 1)]
     #一次return一個進程要處理的照片數
     return [img_list[indices[i]:indices[i + 1]] for i in range(args.num_process)]
 
@@ -78,11 +78,11 @@ def augment_image(filelist, args):
         for i in range(n):
             img_changed = img.copy()
             changed_imgname = '{}_{:0>3d}_'.format(imgname, i)
-            
+
             if random.random() < args.p_mirror:
                 img_changed = cv2.flip(img_changed, 1)
                 changed_imgname += 'm'
-            
+
             if random.random() < args.p_crop:
                 img_changed = utils.random_crop(img_changed, args.crop_size, args.crop_hw_noise)
                 changed_imgname += 'c'
@@ -90,15 +90,15 @@ def augment_image(filelist, args):
             if random.random() < args.p_rotate:
                 img_changed = utils.random_rotate_img(img_changed, args.random_angle, args.p_rotate_crop)
                 changed_imgname += 'r'
-            
+
             if random.random() < args.p_hsv:
                 img_changed = utils.random_hsv_transform(img_changed, args.hue_rand, args.sat_rand, args.val_rand)
                 changed_imgname += 'h'
-            
+
             if random.random() < args.p_gamma:
                 img_changed = utils.random_gamma_transform(img_changed, args.gamma_rand)
                 changed_imgname += 'g'
-            
+
             output_filepath = os.sep.join([args.output_dir, '{}{}'.format(changed_imgname, ext)])
             cv2.imwrite(output_filepath, img_changed)
 
@@ -107,11 +107,11 @@ def main():
     args = parse_args()
     #str(args) = Namespace(params...), we just need the parameters so doing slice [10:-1]
     params_str = str(args)[10:-1]
-    
+
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
     print('Starting image augmentation for {}\nwith\n{}'.format(args.input_dir, params_str))
-    
+
     sublists = generate_img_list(args)
     processes = [Process(target=augment_image, args=(x, args, )) for x in sublists]
     for p in processes:
@@ -119,7 +119,6 @@ def main():
     for p in processes:
         p.join()
     print('\nDone!!!')
-    
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
