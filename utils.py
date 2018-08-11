@@ -23,7 +23,7 @@ def random_crop(img, a_ratio, hw_noise):
     h, w = img.shape[:2] #numpy array row:img_h column:img_w
     hw_delta = np.random.uniform(-hw_noise, hw_noise)
     hw_mult = 1 + hw_delta
-    
+
     #剪裁寬度，取整數 
     w_crop = int(round(w * np.sqrt(a_ratio * hw_mult)))
     if w_crop > w:
@@ -49,7 +49,7 @@ def rotate_img(img, angle, edge):
     h, w = img.shape[:2]
     angle %= 360
     #定義旋轉矩陣
-    rot_matrix =  cv2.getRotationMatrix2D((w/2, h/2), angle, 1)
+    rot_matrix = cv2.getRotationMatrix2D((w/2, h/2), angle, 1)
 
     rot_img = cv2.warpAffine(img, rot_matrix, (w, h))
 

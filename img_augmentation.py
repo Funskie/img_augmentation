@@ -19,22 +19,22 @@ def parse_args():
     parser.add_argument('output_dir', help='Directory for augmented images')
     parser.add_argument('num', help='Number of images to be augmented', type=int)
     parser.add_argument('--num_process', help='Number of processes for paralleled augmentation', type=int, default=cpu_count())
-    parser.add_argument('--p_mirror', help='Ratio to mirror an image', type=float, default=0.5)
+    parser.add_argument('--p_mirror', help='Ratio to mirror an image', type=float, default=0.7)
     #以下為調整剪裁照片的參數
     parser.add_argument('--p_crop', help='Ratio to randomly crop an image', type=float, default=1.0)
     parser.add_argument('--crop_size', help='Ratio of cropped image to original in area', type=float, default=0.8)
-    parser.add_argument('--crop_hw_noise', help='Variation of h/w ratio', type=float, default=0.1)
+    parser.add_argument('--crop_hw_noise', help='Variation of h/w ratio', type=float, default=0.05)
     #以下為調整旋轉照片的參數
     parser.add_argument('--p_rotate', help='Ratio to randomly rotate image', type=float, default=1.0)
-    parser.add_argument('--p_rotate_crop', help='Ratio to randomly crop out empty part in rotated image', type=float, default=1.0)
+    parser.add_argument('--p_rotate_crop', help='Ratio to randomly crop out empty part in rotated image', type=float, default=0.7)
     parser.add_argument('--random_angle', help='Tha angle range of rotated', type=float, default=20.0)
     #以下為調整hsv的參數
-    parser.add_argument('--p_hsv', help='Ratio to randomly change hsv of an image', type=float, default=1.0)
-    parser.add_argument('--hue_rand', help='Ratio of range to change hue', type=int, default=10)
-    parser.add_argument('--sat_rand', help='Ratio of range to change saturation', type=float, default=0.1)
-    parser.add_argument('--val_rand', help='Ratio of range to change value', type=float, default=0.1)
+    parser.add_argument('--p_hsv', help='Ratio to randomly change hsv of an image', type=float, default=0.5)
+    parser.add_argument('--hue_rand', help='Ratio of range to change hue', type=int, default=5)
+    parser.add_argument('--sat_rand', help='Ratio of range to change saturation', type=float, default=0.05)
+    parser.add_argument('--val_rand', help='Ratio of range to change value', type=float, default=0.05)
     #以下為跳整gamma的參數
-    parser.add_argument('--p_gamma', help='Ratio to randomly change gamma of an image', type=float, default=1.0)
+    parser.add_argument('--p_gamma', help='Ratio to randomly change gamma of an image', type=float, default=0.5)
     parser.add_argument('--gamma_rand', help='Ratio of range to change gamma', type=float, default=2.0)
 
     args = parser.parse_args()
@@ -60,7 +60,7 @@ def generate_img_list(args):
     random.shuffle(img_list)
     #計算每個process要處理的原照片張數與index
     lenght = float(num_imgs) / float(args.num_process)
-    indices = [int(round(i * lenght)) for i in (range(args.num_process) + 1)]
+    indices = [int(round(i * lenght)) for i in (range(args.num_process + 1))]
     #一次return一個進程要處理的照片數
     return [img_list[indices[i]:indices[i + 1]] for i in range(args.num_process)]
 
@@ -72,6 +72,7 @@ def augment_image(filelist, args):
         dot_position = filename.rfind('.')
 
         imgname = filename[:dot_position]
+        #ext = filetype ex: jpg, jpeg, pgn...
         ext = filename[dot_position:]
         print('Augmenting {}...'.format(filename))
         for i in range(n):
@@ -87,7 +88,7 @@ def augment_image(filelist, args):
                 changed_imgname += 'c'
 
             if random.random() < args.p_rotate:
-                img_changed = utils.random_rotate_img(img_changed, args.rand_angle, args.p_rotate_crop)
+                img_changed = utils.random_rotate_img(img_changed, args.random_angle, args.p_rotate_crop)
                 changed_imgname += 'r'
             
             if random.random() < args.p_hsv:
@@ -101,3 +102,24 @@ def augment_image(filelist, args):
             output_filepath = os.sep.join([args.output_dir, '{}{}'.format(changed_imgname, ext)])
             cv2.imwrite(output_filepath, img_changed)
 
+def main():
+    """main()"""
+    args = parse_args()
+    #str(args) = Namespace(params...), we just need the parameters so doing slice [10:-1]
+    params_str = str(args)[10:-1]
+    
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
+    print('Starting image augmentation for {}\nwith\n{}'.format(args.input_dir, params_str))
+    
+    sublists = generate_img_list(args)
+    processes = [Process(target=augment_image, args=(x, args, )) for x in sublists]
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
+    print('\nDone!!!')
+    
+
+if __name__=='__main__':
+    main()
